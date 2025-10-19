@@ -1,0 +1,73 @@
+name: CI Security & Build Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-scan:
+    name: Lint, Secret Scan, Trivy, and Docker Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Linting (React/JS)
+      - name: Run Linter
+        run: |
+          npm install eslint
+          npx eslint src --max-warnings=0
+
+      # 5️⃣ Secret Detection
+      - name: Detect secrets
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+          fail: true
+
+      # 6️⃣ Trivy FS Scan (scan source code before build)
+      - name: Trivy FS Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          severity: 'HIGH,CRITICAL'
+          ignore-unfixed: true
+          exit-code: 1
+          format: 'table'
+
+      # 7️⃣ Build React app
+      - name: Build React app
+        run: npm run build
+
+      # 8️⃣ Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 9️⃣ Build Docker Image
+      - name: Build Docker image
+        run: |
+          docker build -t reactapp:latest .
+
+      # 🔟 Trivy Image Scan (after build)
+      - name: Trivy Image Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: reactapp:latest
+          severity: 'HIGH,CRITICAL'
+          ignore-unfixed: true
+          exit-code: 1
+          format: 'table'
