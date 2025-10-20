@@ -33,7 +33,7 @@ jobs:
       # 5️⃣ Linting
       - name: Run Linter
         run: |
-          npm install eslint
+          npm install eslint@8.57.0 --save-dev
           npx eslint src --max-warnings=0
 
       # 6️⃣ Secret Detection
