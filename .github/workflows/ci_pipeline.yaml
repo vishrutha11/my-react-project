@@ -26,15 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      # 4️⃣ Run npm audit fix to resolve known vulnerabilities
+      # 4️⃣ Fix known vulnerabilities
       - name: Fix known vulnerabilities
         run: npm audit fix || echo "Audit fix completed"
 
-      # 5️⃣ Linting
+      # 5️⃣ Run ESLint
       - name: Run Linter
-        run: |
-          npm install eslint@8.57.0 --save-dev
-          npx eslint src --max-warnings=0
+        run: npx eslint src --max-warnings=0
 
       # 6️⃣ Secret Detection
       - name: Detect secrets
@@ -43,7 +41,7 @@ jobs:
           config-path: .gitleaks.toml
           fail: true
 
-      # 7️⃣ Trivy FS Scan (fail for HIGH or CRITICAL)
+      # 7️⃣ Trivy File System Scan (fail for HIGH or CRITICAL)
       - name: Trivy File System Scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -65,8 +63,7 @@ jobs:
 
       # 🔟 Build Docker Image
       - name: Build Docker image
-        run: |
-          docker build -t reactapp:latest .
+        run: docker build -t reactapp:latest .
 
       # 1️⃣1️⃣ Trivy Image Scan (fail for HIGH or CRITICAL)
       - name: Trivy Image Scan
