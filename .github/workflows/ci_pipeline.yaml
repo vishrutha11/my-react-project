@@ -32,7 +32,7 @@ jobs:
 
       # 5️⃣ Run ESLint
       - name: Run Linter
-        run: npx eslint src --max-warnings=0
+        run: npm run lint
 
       # 6️⃣ Secret Detection
       - name: Detect secrets
