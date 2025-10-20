@@ -18,7 +18,7 @@ jobs:
 
       # 2️⃣ Set up Node.js
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
@@ -43,15 +43,17 @@ jobs:
           config-path: .gitleaks.toml
           fail: true
 
-      # 7️⃣ Trivy FS Scan (scan source code before build)
-      - name: Trivy FS Scan
+      # 7️⃣ Trivy FS Scan (fail for HIGH or CRITICAL)
+      - name: Trivy File System Scan
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          severity: 'HIGH,CRITICAL'
+          scan-type: fs
+          severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: 1
-          format: 'table'
+          format: table
+        env:
+          TRIVY_DISABLE_VEX_NOTICE: true
 
       # 8️⃣ Build React app
       - name: Build React app
@@ -66,12 +68,14 @@ jobs:
         run: |
           docker build -t reactapp:latest .
 
-      # 1️⃣1️⃣ Trivy Image Scan (after Docker build)
+      # 1️⃣1️⃣ Trivy Image Scan (fail for HIGH or CRITICAL)
       - name: Trivy Image Scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: reactapp:latest
-          severity: 'HIGH,CRITICAL'
+          severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: 1
-          format: 'table'
+          format: table
+        env:
+          TRIVY_DISABLE_VEX_NOTICE: true
